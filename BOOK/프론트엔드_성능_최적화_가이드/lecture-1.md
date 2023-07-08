@@ -54,4 +54,44 @@
   - 분석을 통해, 크기가 너무 큰 모듈은 진입 목록에서 굳이 다운로드할 필요가 없기 대문에 하나로 합쳐져 있는 번들 파일 (chunk 파일?) 을 페이지별로 필요한 내용만 분리하여 필요할 때만 따로따로 로드하면 좋을 것 같다.
 
 - 코드 분할 : 하나의 번들 파일을 여러 개의 파일로 쪼개는 방법.
--
+  - 불필요한 코드 또는 중복되는 코드 없이 적절한 사이즈의 코드가 적절한 타이밍에 로드되도록 하는 것.
+
+### 코드 분할 적용하기
+
+- 동적 import 사용하기
+
+  ```jsx
+  import { add } from './math'; // 빌드 시에 함께 번들링 됨
+  console.log(add(1, 4));
+  ```
+
+  ```jsx
+  import('add').then((module) => {
+    const { add } = module;
+
+    console.log(add(1, 4));
+  });
+  // 빌드할 때가 아닌 런타임에 해당 모듈을 로드. 동적 import라고 함
+  ```
+
+  - webpack은 이 동적 import 구문을 만나면 코드를 분할하여 번들링.
+
+    - 동적 import 구문은 Promise 형태로 모듈을 반환해 줌. import 하려는 모듈을 컴포넌트이기 때문에 Promise내부에서 로드된 컴포넌트를 Promise 밖으로 빼내야 함
+
+      - -> 해결 : lazy, suspense
+
+      ```jsx
+      import React, { Suspense } from 'react';
+
+      const SomeComponent = React.lazy(() => import('./SomeComponent'));
+
+      function Mycomponent() {
+        return (
+          <div>
+            <Suspense fallback={<Loading />}>
+              <SomeComponent />
+            </Suspense>
+          </div>
+        );
+      }
+      ```
